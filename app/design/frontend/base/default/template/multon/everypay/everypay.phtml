@@ -1,10 +1,103 @@
+<?php
+$type = Mage::getStoreConfig('payment/multon_everypay/connection_type');
+
+if ($type)
+{
+	?>
+	<iframe id="iframe-payment-container" name="iframe-payment-container" width="460" height="400" style="border: none"></iframe>
+<?php } ?>
+
 <div class="payment_everyay_container payment_method_everypay">
-    <?php echo $this->getChildHtml('everypay_everypay_description') ?>
-    <form id="GatewayForm" name="everypay" action="<?php echo $this->getGatewayUrl() ?>" method="POST" target="_top">
+	<?php echo $this->getChildHtml('everypay_everypay_description') ?>
+    <form
+	<?php if (!$type)
+		{
+		?>
+			id="GatewayForm"  target="_top"
+		<?php } else
+		{
+			?>
+			id="iframe_form" style="display: none" target="iframe-payment-container"
+		<?php } ?>
+		name="everypay" action="<?php echo $this->getGatewayUrl() ?>transactions/" method="POST">
         <input type="image" src="<?php echo $this->getMethodLogoUrl(); ?>" onclick="this.form.submit()" class="payment-gateway-logo everypay_logo"/>
-        <?php foreach ($this->getFields() as $key => $value) { ?>
-            <input type="hidden" name="<?php echo $key ?>" value="<?php echo $value ?>"/>
-        <?php } ?>
+		<?php foreach ($this->getFields() as $key => $value)
+		{ ?>
+			<input type="hidden" name="<?php echo $key ?>" value="<?php echo $value ?>"/>
+	<?php } ?>
     </form>
-    <?php echo $this->getQuickRedirectScript(); ?>
+	<?php
+	if (!$type)
+		echo $this->getQuickRedirectScript();
+	else
+	{
+		?>
+		<script>
+			window.onload = function () {
+				document.getElementById("iframe_form").submit();
+			};
+
+			var shrinked_iframe_data;
+			var iframe = jQuery('#iframe-payment-container'); // iframe selector should be used
+
+			var shrinkIframe = function (iframe, iframe_data) {
+				iframe.css(iframe_data);
+				jQuery("#dimmed_background_box").remove();
+			};
+			var expandIframe = function () {
+				var iframe_data = {
+					position: iframe.attr("position") || "static",
+					top: iframe.position().top,
+					left: iframe.position().left,
+					width: iframe.width(),
+					height: iframe.height(),
+					zIndex: iframe.attr("zIndex"),
+					marginLeft: iframe.attr("marginLeft"),
+					marginRight: iframe.attr("marginRight")
+				};
+
+				jQuery('body').append("<div id='dimmed_background_box'></div>");
+				jQuery('#dimmed_background_box').css({height: '100%', width: '100%', position: 'fixed', top: 0, left: 0, zIndex: 9998, backgroundColor: '#000000', opacity: 0.5});
+
+				var window_height = jQuery(window).height();
+				var window_width = jQuery(window).width();
+
+				if (window_width < 960) {
+					iframe.css({height: window_height, width: window_width, top: 0});
+				} else {
+					iframe.css({height: 640, width: 960, top: (window_height - 640) / 2, left: (window_width - 960) / 2});
+				}
+				iframe.css({position: 'fixed', zIndex: 9999, margin: 'auto'});
+				return iframe_data;
+			};
+
+			window.addEventListener('message', function (event) {
+				if (event.origin.concat("/") !== "<?php echo $this->getGatewayUrl() ?>") {
+					return;
+				}
+
+				var message = JSON.parse(event.data);
+				/*
+				 1. An "expand" message is sent from the iframe page when 3D secure page is going to be displayed.
+				 The size of the iframe should be adjusted to hold 3D secure page
+				 2. A "shrink" message is sent from the iframe page when a user has provided authorisation details on the 3D secure page.
+				 The size of the iframe should be set to the initial values
+				 */
+				if (message.resize_iframe === "expand") {
+					shrinked_iframe_data = expandIframe(iframe);
+				} else if (message.resize_iframe === "shrink") {
+					shrinkIframe(iframe, shrinked_iframe_data);
+				}
+
+	// It receives a message from the iframe about transaction's result. Possible states: completed, failed.
+				if (message.transaction_result) {
+					if (message.transaction_result === "completed")
+					{
+						window.location="<?php echo Mage::getUrl('checkout/onepage/success'); ?>";
+					}
+				}
+			}, false);
+
+		</script>
+<?php } ?>
 </div>

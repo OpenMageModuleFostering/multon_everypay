@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Multon_Everypay>
-            <version>1.2.0</version>
+            <version>1.2.4</version>
         </Multon_Everypay>
     </modules>
     <global>
@@ -66,15 +66,19 @@
                 <active>0</active>
                 <title>EveryPay</title>
                 <order_status>pending</order_status>
-                <gateway_url>https://pay.every-pay.eu/transactions/</gateway_url>
+				<connection_type>1</connection_type>
+				<skin_name>default</skin_name>
+                <gateway_url>https://pay.every-pay.eu/</gateway_url>
                 <api_username></api_username>
                 <api_secret></api_secret>
                 <account_id></account_id>
-				<transaction_type>authorisation</transaction_type>
+				<transaction_type>charge</transaction_type>
                 <order_confirmation>0</order_confirmation>
                 <invoice_confirmation>1</invoice_confirmation>
                 <model>everypay/everypay</model>
                 <payment_action>authorize</payment_action>
+				<show_logo>1</show_logo>
+				<show_title>0</show_title>
             </multon_everypay>
         </payment>
     </default>

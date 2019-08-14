@@ -28,7 +28,7 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 	 */
 	public function getMethodLogoUrl()
 	{
-		return $this->getSkinUrl('images/multon/everypay/mastercard_visa_acceptance.jpg');
+		return $this->getSkinUrl('images/multon/everypay/mastercard_visa_acceptance.png');
 	}
 
 	/**
@@ -38,7 +38,7 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 	 */
 	public function getMethodLabelAfterHtml()
 	{
-		if (Mage::getStoreConfig('payment/' . $this->_code . '/hide_logo'))
+		if (!Mage::getStoreConfig('payment/' . $this->_code . '/show_logo'))
 			return '';
 
 		$blockHtml = sprintf(
@@ -99,10 +99,15 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 		if (!$shipping)
 			$shipping = $billing;
 
+		if ($this->getGatewayUrl() == Multon_Everypay_Model_Source_ApiUrl::$urlList['LIVE'])
+			$username = Mage::getStoreConfig('payment/' . $this->_code . '/api_username');
+		else
+			$username = Mage::getStoreConfig('payment/' . $this->_code . '/api_username_test');
+
 		$fields = array(
 			'account_id' => Mage::getStoreConfig('payment/' . $this->_code . '/account_id'),
 			'amount' => number_format($order->getTotalDue(), 2, '.', ''),
-			'api_username' => Mage::getStoreConfig('payment/' . $this->_code . '/api_username'),
+			'api_username' => $username,
 			'billing_address' => $billing->getStreetFull(),
 			'billing_city' => $billing->getCity(),
 			'billing_country' => $billing->getCountry(),
@@ -125,6 +130,8 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 
 		$fields['hmac'] = $this->signData($this->prepareData($fields));
 		$fields['locale'] = $language;
+		if (Mage::getStoreConfig('payment/multon_everypay/connection_type'))
+			$fields['skin_name'] = Mage::getStoreConfig('payment/multon_everypay/skin_name');
 
 //		Mage::log(print_r($fields, 1), null, $this->logFile);
 
@@ -170,7 +177,11 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 
 	protected function signData($data)
 	{
-		return hash_hmac('sha1', $data, Mage::getStoreConfig('payment/' . $this->_code . '/api_secret'));
+		if ($this->getGatewayUrl() == Multon_Everypay_Model_Source_ApiUrl::$urlList['LIVE'])
+			$secret = Mage::getStoreConfig('payment/' . $this->_code . '/api_secret');
+		else
+			$secret = Mage::getStoreConfig('payment/' . $this->_code . '/api_secret_test');
+		return hash_hmac('sha1', $data, $secret);
 	}
 
 }

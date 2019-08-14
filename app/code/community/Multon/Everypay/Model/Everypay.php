@@ -10,7 +10,6 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 	protected $_isGateway = true;
 	protected $_canUseCheckout = true;
 	protected $logFile = 'everypay.log';
-
 	protected $_code = 'multon_everypay';
 	protected $_formBlockType = 'everypay/everypay';
 	private $statuses = array(
@@ -43,7 +42,17 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 
 //		$this->log($data, __METHOD__, __LINE__);
 
-		$hmac = hash_hmac('sha1', substr($data, 0, -1), Mage::getStoreConfig('payment/' . $this->_code . '/api_secret'));
+		if ($this->getGatewayUrl() == Multon_Everypay_Model_Source_ApiUrl::$urlList['LIVE'])
+		{
+			$username = Mage::getStoreConfig('payment/' . $this->_code . '/api_username');
+			$secret = Mage::getStoreConfig('payment/' . $this->_code . '/api_secret');
+		} else
+		{
+			$username = Mage::getStoreConfig('payment/' . $this->_code . '/api_username_test');
+			$secret = Mage::getStoreConfig('payment/' . $this->_code . '/api_secret_test');
+		}
+
+		$hmac = hash_hmac('sha1', substr($data, 0, -1), $secret);
 		if ($params['hmac'] != $hmac)
 		{
 			$this->log('(Everypay) Invalid HMAC (Expected: ' . $hmac . ')', __METHOD__, __LINE__);
@@ -65,7 +74,7 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 //				$this->log('(Everypay) Warnings: ' . print_r($warnings, 1), __METHOD__, __LINE__);
 //		}
 
-		if (!isset($params['api_username']) || ($params['api_username'] !== Mage::getStoreConfig('payment/' . $this->_code . '/api_username')))
+		if (!isset($params['api_username']) || ($params['api_username'] !== $username))
 		{
 			$this->log('(Everypay) Invalid username', __METHOD__, __LINE__);
 			Mage::getSingleton('checkout/session')->addError('Invalid username.');
@@ -111,7 +120,7 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 		$orderMethod = $order->getPayment()->getMethod();
 		if ($orderMethod != $this->_code)
 		{
-			$this->log('(Everypay): Wrong payment method. Order has: '.$orderMethod, __METHOD__, __LINE__);
+			$this->log('(Everypay): Wrong payment method. Order has: ' . $orderMethod, __METHOD__, __LINE__);
 			Mage::getSingleton('checkout/session')->addError('Wrong payment method.');
 			return self::_VERIFY_CORRUPT;
 		}
@@ -163,11 +172,13 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 				}
 			} else
 			{
-				$this->log('Failed to create invoice for order ' . $this->getOrderId() . '. Reason: invoice already created', __METHOD__, __LINE__);
+				$this->log('Failed to create invoice for order ' . $this->getOrderId() . '. Reason: invoice already created',
+						__METHOD__, __LINE__);
 			}
 		} else
 		{
-			$this->log('Failed to create invoice for order ' . $this->getOrderId() . '. Reason: order locked', __METHOD__, __LINE__);
+			$this->log('Failed to create invoice for order ' . $this->getOrderId() . '. Reason: order locked', __METHOD__,
+					__LINE__);
 		}
 	}
 

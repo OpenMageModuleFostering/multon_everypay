@@ -12,6 +12,13 @@
         </reference>
     </everypay_everypay_redirect>
     <default>
+        <reference name="head">
+            <block type="core/text" name="cdn.jquery">
+                <action method="setText">
+                    <text><![CDATA[<script src="//code.jquery.com/jquery-2.1.4.min.js"></script><script>jQuery.noConflict();</script>]]></text>
+                </action>
+            </block>
+        </reference>
         <reference name="footer">
             <block type="everypay/info" name="everypay_info" template="multon/everypay/info.phtml" />
         </reference>
