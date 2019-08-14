@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/multon_everypay",
+    "type": "magento-module",
+    "license": "OSL",
+    "homepage": "",
+    "description": "Multon Everypay",
+    "authors": [
+    {
+        "name": "Multon",
+        "email": "magento@multon.ee"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}

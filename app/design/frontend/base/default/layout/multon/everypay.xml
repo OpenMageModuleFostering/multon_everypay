@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout version="0.1.0">
+    <everypay_everypay_redirect>
+        <reference name="content">
+            <block type="everypay/everypay" name="everypay" template="multon/everypay/everypay.phtml">
+                <block type="cms/block" name="everypay_description">
+                    <action method="setBlockId">
+                        <block_id>everypay_description</block_id>
+                    </action>
+                </block>
+            </block>
+        </reference>
+    </everypay_everypay_redirect>
+    <default>
+        <reference name="footer">
+            <block type="everypay/info" name="everypay_info" template="multon/everypay/info.phtml" />
+        </reference>
+    </default>
+</layout>

@@ -1,0 +1,16 @@
+<?php
+$gateways = $this->getEnabledGateways();
+if (is_array($gateways) && sizeof($gateways) > 0)
+{
+	?>
+	<ul class="everypay-logo">
+		<?php
+		foreach ($gateways as $gateway)
+		{
+			?>
+			<li class="item">
+				<img src="<?php echo $gateway['logo'] ?>" alt="<?php echo $gateway['title'] ?>" title="<?php echo $gateway['title'] ?>"/>
+			</li>
+	<?php } ?>
+	</ul>
+<?php } ?>

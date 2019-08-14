@@ -1,0 +1,10 @@
+<div class="payment_everyay_container payment_method_everypay">
+    <?php echo $this->getChildHtml('everypay_everypay_description') ?>
+    <form id="GatewayForm" name="everypay" action="<?php echo $this->getGatewayUrl() ?>" method="POST" target="_top">
+        <input type="image" src="<?php echo $this->getMethodLogoUrl(); ?>" onclick="this.form.submit()" class="payment-gateway-logo everypay_logo"/>
+        <?php foreach ($this->getFields() as $key => $value) { ?>
+            <input type="hidden" name="<?php echo $key ?>" value="<?php echo $value ?>"/>
+        <?php } ?>
+    </form>
+    <?php echo $this->getQuickRedirectScript(); ?>
+</div>
