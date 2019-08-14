@@ -18,6 +18,16 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 		'cancelled' => self::_VERIFY_CANCEL,
 	);
 
+	/**
+	 * Returns payment gateway URL
+	 *
+	 * @return string Gateway URL
+	 */
+	public function getGatewayUrl()
+	{
+		return Mage::getStoreConfig('payment/' . $this->_code . '/gateway_url');
+	}
+
 	public function getOrderPlaceRedirectUrl()
 	{
 		return Mage::getUrl('everypay/everypay/redirect');

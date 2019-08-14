@@ -2,11 +2,7 @@
 <layout version="0.1.0">
     <default>
         <reference name="head">
-            <block type="core/text" name="cdn.jquery">
-                <action method="setText">
-                    <text><![CDATA[<script src="//code.jquery.com/jquery-2.1.4.min.js"></script><script>jQuery.noConflict();</script>]]></text>
-                </action>
-            </block>
+            <block type="core/template" name="everypay_jquery" template="multon/everypay/jquery.phtml" />
         </reference>
         <reference name="footer">
             <block type="everypay/info" name="everypay_info" template="multon/everypay/info.phtml" />
