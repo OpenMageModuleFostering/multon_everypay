@@ -3,7 +3,7 @@
     <sections>
         <payment>
             <groups>
-				<multon_everypay translate="label" module="multonpay">
+				<multon_everypay translate="label" module="everypay">
 					<frontend_model>Multon_Everypay_Block_Adminhtml_Fieldset</frontend_model>
 					<label>EveryPay</label>
 					<sort_order>170</sort_order>

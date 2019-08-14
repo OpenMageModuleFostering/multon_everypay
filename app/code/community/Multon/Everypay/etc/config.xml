@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Multon_Everypay>
-            <version>1.2.5</version>
+            <version>1.2.6</version>
         </Multon_Everypay>
     </modules>
     <global>
@@ -32,6 +32,11 @@
 				</setup>
 			</everypay_setup>
 		</resources>
+		<helpers>
+			<everypay>
+				<class>Multon_Everypay_Helper</class>
+			</everypay>
+		</helpers>
     </global>
     <adminhtml>
         <layout>

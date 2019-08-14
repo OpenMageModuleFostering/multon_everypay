@@ -1,14 +1,17 @@
 <?xml version="1.0"?>
 <package>
     <name>multon_everypay</name>
-    <version>1.2.5</version>
+    <version>1.2.6</version>
     <stability>stable</stability>
     <license>OSL</license>
     <channel>community</channel>
     <extends/>
     <summary>Multon Everypay</summary>
     <description>Multon Everypay</description>
-    <notes>1.2.5&#xD;
+    <notes>1.2.6&#xD;
+FIX: backend translation&#xD;
+&#xD;
+1.2.5&#xD;
 FIX: removed newline in multiline street data&#xD;
 &#xD;
 1.2.4&#xD;
@@ -57,9 +60,9 @@ FIX: redirect template&#xD;
 1.0.0&#xD;
 Stable release</notes>
     <authors><author><name>Multon</name><user>eepohs</user><email>magento@multon.ee</email></author><author><name>Jaanus Vapper</name><user>hullkuri</user><email>hullkuri@gmail.com</email></author><author><name>Tanel Raja</name><user>Pronto</user><email>tanel.raja@gmail.com</email></author></authors>
-    <date>2015-11-09</date>
-    <time>11:19:06</time>
-    <contents><target name="magecommunity"><dir name="Multon"><dir name="Everypay"><dir name="Block"><dir name="Adminhtml"><file name="Fieldset.php" hash="324c82a14594133019deef5c98e8ec78"/><dir name="System"><dir name="Config"><file name="Intro.php" hash="25a5c87ee274de259ede0decc040f643"/><file name="Outro.php" hash="21e9865c5f85cc0c8a601cc171d3f5d0"/><file name="Version.php" hash="63d888085e44f1b99e77aec70f12f62a"/></dir></dir></dir><file name="Everypay.php" hash="2246ead98a87edaa2dd8dc0b64a758e7"/><file name="Info.php" hash="4755af2b544c9f5de39098046e6da0fb"/></dir><dir name="Model"><file name="Everypay.php" hash="56e86b0afb72ef77b04aab70491a03d7"/><dir name="Source"><file name="ApiUrl.php" hash="e1b55560b85996fccd3492d45f02844f"/><file name="ConnectionType.php" hash="0857dfbb0deee17ca3459dc2bf5f8569"/><file name="PaymentAction.php" hash="27787205d1886997aeccecb4028d488f"/></dir></dir><dir name="controllers"><file name="EverypayController.php" hash="4d70fc06e227af4e6fcf920be2e89ec1"/></dir><dir name="etc"><file name="config.xml" hash="b2a56e0a319a7ee2f7979d7e7c085828"/><file name="system.xml" hash="36974d802cf6c2b165e76d8ec5866773"/></dir><dir name="sql"><dir name="everypay_setup"><file name="install-1.0.0.php" hash="201924647c609f33835712ab2c81e4d4"/><file name="upgrade-1.2.0-1.2.1.php" hash="1ff58987d6575a8c018e80fc600897bd"/></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Multon_Everypay.xml" hash="99a2dd0a396a3a1b937d767e48ce237f"/></dir></target><target name="magedesign"><dir name="frontend"><dir name="base"><dir name="default"><dir name="layout"><dir name="multon"><file name="everypay.xml" hash="9b5e6ce111deb2114547dca090d7fab2"/></dir></dir><dir name="template"><dir name="multon"><dir name="everypay"><file name="everypay.phtml" hash="886f83c265e8be7ff76f0a3a8ef19bc5"/><file name="info.phtml" hash="91eb9c88527bc6b0076f382df0f6809c"/></dir></dir></dir></dir></dir></dir></target><target name="mageskin"><dir name="frontend"><dir name="base"><dir name="default"><dir name="images"><dir name="multon"><dir name="everypay"><file name="mastercard_visa_acceptance.png" hash="d448d1eff4e623c1b35c67ad80c189fb"/></dir></dir></dir></dir></dir></dir><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="images"><file name="everypay-logo.jpg" hash="909c46f5e89be9de1d0d2ad7fdfb8bc6"/></dir></dir></dir></dir></target></contents>
+    <date>2015-12-04</date>
+    <time>08:50:27</time>
+    <contents><target name="magecommunity"><dir name="Multon"><dir name="Everypay"><dir name="Block"><dir name="Adminhtml"><file name="Fieldset.php" hash="324c82a14594133019deef5c98e8ec78"/><dir name="System"><dir name="Config"><file name="Intro.php" hash="25a5c87ee274de259ede0decc040f643"/><file name="Outro.php" hash="21e9865c5f85cc0c8a601cc171d3f5d0"/><file name="Version.php" hash="63d888085e44f1b99e77aec70f12f62a"/></dir></dir></dir><file name="Everypay.php" hash="2246ead98a87edaa2dd8dc0b64a758e7"/><file name="Info.php" hash="4755af2b544c9f5de39098046e6da0fb"/></dir><dir name="Helper"><file name="Data.php" hash="b30009b1c08d4c4e798ab717d69b0468"/></dir><dir name="Model"><file name="Everypay.php" hash="56e86b0afb72ef77b04aab70491a03d7"/><dir name="Source"><file name="ApiUrl.php" hash="e1b55560b85996fccd3492d45f02844f"/><file name="ConnectionType.php" hash="0857dfbb0deee17ca3459dc2bf5f8569"/><file name="PaymentAction.php" hash="27787205d1886997aeccecb4028d488f"/></dir></dir><dir name="controllers"><file name="EverypayController.php" hash="4d70fc06e227af4e6fcf920be2e89ec1"/></dir><dir name="etc"><file name="config.xml" hash="d5dcec15e8cd4ebebcf604380c5101e6"/><file name="system.xml" hash="0907aa8bc967d7a65a8ac84812d67277"/></dir><dir name="sql"><dir name="everypay_setup"><file name="install-1.0.0.php" hash="201924647c609f33835712ab2c81e4d4"/><file name="upgrade-1.2.0-1.2.1.php" hash="1ff58987d6575a8c018e80fc600897bd"/></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Multon_Everypay.xml" hash="99a2dd0a396a3a1b937d767e48ce237f"/></dir></target><target name="magedesign"><dir name="frontend"><dir name="base"><dir name="default"><dir name="layout"><dir name="multon"><file name="everypay.xml" hash="9b5e6ce111deb2114547dca090d7fab2"/></dir></dir><dir name="template"><dir name="multon"><dir name="everypay"><file name="everypay.phtml" hash="886f83c265e8be7ff76f0a3a8ef19bc5"/><file name="info.phtml" hash="91eb9c88527bc6b0076f382df0f6809c"/></dir></dir></dir></dir></dir></dir></target><target name="mageskin"><dir name="frontend"><dir name="base"><dir name="default"><dir name="images"><dir name="multon"><dir name="everypay"><file name="mastercard_visa_acceptance.png" hash="d448d1eff4e623c1b35c67ad80c189fb"/></dir></dir></dir></dir></dir></dir><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="images"><file name="everypay-logo.jpg" hash="909c46f5e89be9de1d0d2ad7fdfb8bc6"/></dir></dir></dir></dir></target></contents>
     <compatible/>
     <dependencies><required><php><min>5.4.0</min><max>6.0.0</max></php></required></dependencies>
 </package>
