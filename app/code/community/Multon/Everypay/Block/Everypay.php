@@ -11,6 +11,11 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 		return Mage::getUrl('everypay/everypay/return', array('_nosid' => true));
 	}
 
+	protected function getCallbackUrl()
+	{
+		return Mage::getUrl('everypay/everypay/callback', array('_nosid' => true));
+	}
+
 	/**
 	 * Returns payment gateway URL
 	 *
@@ -32,25 +37,6 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 	}
 
 	/**
-	 * Adds payment mehtod logotypes after method name
-	 *
-	 * @return string
-	 */
-	public function getMethodLabelAfterHtml()
-	{
-		if (!Mage::getStoreConfig('payment/' . $this->_code . '/show_logo'))
-			return '';
-
-		$blockHtml = sprintf(
-				'<img src="%1$s"
-                title="%2$s"
-                alt="%2$s"
-                class="payment-method-logo"/>', $this->getMethodLogoUrl(), ucfirst($this->_gateway)
-		);
-		return $blockHtml;
-	}
-
-	/**
 	 * Checks if quick redirect is enabled and
 	 * returns javascript block that redirects user
 	 * to bank without intermediate page
@@ -69,6 +55,12 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 		return $outstr;
 	}
 
+	public function getOrder()
+	{
+		$orderId = Mage::getSingleton('checkout/session')->getLastOrderId();
+		return Mage::getModel('sales/order')->load($orderId);
+	}
+
 	/**
 	 * Populates and returns array of fields to be submitted
 	 * to a bank for payment
@@ -77,8 +69,7 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 	 */
 	public function getFields()
 	{
-		$orderId = Mage::getSingleton('checkout/session')->getLastOrderId();
-		$order = Mage::getModel('sales/order')->load($orderId);
+		$order = $this->getOrder();
 		/* @var $order Mage_Sales_Model_Order */
 		switch (Mage::app()->getLocale()->getLocaleCode())
 		{
@@ -104,6 +95,9 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 		else
 			$username = Mage::getStoreConfig('payment/' . $this->_code . '/api_username_test');
 
+		$use_token = $order->getPayment()->getMethodInstance()->getInfoInstance()->getAdditionalInformation('everypay_use_token');
+		$save_token = !empty($use_token) ? 0 : (int)$order->getPayment()->getMethodInstance()->getInfoInstance()->getAdditionalInformation('everypay_save_token');
+
 		$fields = array(
 			'account_id' => Mage::getStoreConfig('payment/' . $this->_code . '/account_id'),
 			'amount' => number_format($order->getTotalDue(), 2, '.', ''),
@@ -112,25 +106,33 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 			'billing_city' => $billing->getCity(),
 			'billing_country' => $billing->getCountry(),
 			'billing_postcode' => $billing->getPostcode(),
-			'callback_url' => $this->getReturnUrl(),
+			'callback_url' => $this->getCallbackUrl(),
 			'customer_url' => $this->getReturnUrl(),
 			'delivery_address' => str_replace("\n", ' ', $shipping->getStreetFull()),
 			'delivery_city' => $shipping->getCity(),
 			'delivery_country' => $shipping->getCountry(),
 			'delivery_postcode' => $shipping->getPostcode(),
 			'email' => $billing->getEmail(),
-			'hmac_fields' => 'account_id,amount,api_username,billing_address,billing_city,billing_country,billing_postcode,callback_url,customer_url,delivery_address,delivery_city,' .
-			'delivery_country,delivery_postcode,email,hmac_fields,nonce,order_reference,timestamp,transaction_type,user_ip',
+			'hmac_fields' => '',
 			'nonce' => $this->getNonce(),
 			'order_reference' => $order->getIncrementId(),
 			'timestamp' => time(),
-			'transaction_type' => Mage::getStoreConfig('payment/' . $this->_code . '/transaction_type'),
+			'transaction_type' => 'charge',
 			'user_ip' => $_SERVER['REMOTE_ADDR'],
 		);
 
+		if (!empty($use_token))
+			$fields['cc_token'] = $use_token;
+		else if ($save_token)
+			$fields['request_cc_token'] = $save_token;
+
+		ksort($fields);
+
+		$fields['hmac_fields'] = implode(',',  array_keys($fields));
+
 		$fields['hmac'] = $this->signData($this->prepareData($fields));
 		$fields['locale'] = $language;
-		if (Mage::getStoreConfig('payment/multon_everypay/connection_type'))
+		if (Mage::getStoreConfig('payment/multon_everypay/connection_type') || isset($fields['cc_token']))
 			$fields['skin_name'] = Mage::getStoreConfig('payment/multon_everypay/skin_name');
 
 //		Mage::log(print_r($fields, 1), null, $this->logFile);

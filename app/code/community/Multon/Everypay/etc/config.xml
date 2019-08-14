@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Multon_Everypay>
-            <version>1.2.6</version>
+            <version>1.3.6</version>
         </Multon_Everypay>
     </modules>
     <global>
@@ -17,6 +17,9 @@
 					<nonce>
 						<table>everypay_nonce</table>
 					</nonce>
+					<token>
+						<table>everypay_token</table>
+					</token>
 				</entities>
 			</everypay_resource>
         </models>
@@ -25,6 +28,11 @@
                 <class>Multon_Everypay_Block</class>
             </everypay>
         </blocks>
+		<helpers>
+			<everypay>
+				<class>Multon_Everypay_Helper</class>
+			</everypay>
+		</helpers>
 		<resources>
 			<everypay_setup>
 				<setup>
@@ -32,11 +40,6 @@
 				</setup>
 			</everypay_setup>
 		</resources>
-		<helpers>
-			<everypay>
-				<class>Multon_Everypay_Helper</class>
-			</everypay>
-		</helpers>
     </global>
     <adminhtml>
         <layout>
@@ -46,6 +49,15 @@
                 </Multon_Everypay>
             </updates>
         </layout>
+        <translate>
+            <modules>
+                <everypay>
+                    <files>
+                        <default>Multon_Everypay.csv</default>
+                    </files>
+                </everypay>
+            </modules>
+        </translate>
     </adminhtml>
     <frontend>
         <layout>
@@ -64,6 +76,15 @@
                 </args>
             </everypay>
         </routers>
+        <translate>
+            <modules>
+                <Multon_Everypay>
+                    <files>
+                        <default>Multon_Everypay.csv</default>
+                    </files>
+                </Multon_Everypay>
+            </modules>
+        </translate>
     </frontend>
     <default>
         <payment>
@@ -77,11 +98,11 @@
                 <api_username></api_username>
                 <api_secret></api_secret>
                 <account_id></account_id>
-				<transaction_type>charge</transaction_type>
                 <order_confirmation>0</order_confirmation>
                 <invoice_confirmation>1</invoice_confirmation>
                 <model>everypay/everypay</model>
                 <payment_action>authorize</payment_action>
+				<quick_redirect>1</quick_redirect>
 				<show_logo>1</show_logo>
 				<show_title>0</show_title>
             </multon_everypay>

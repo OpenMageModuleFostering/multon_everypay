@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <layout version="0.1.0">
-    <everypay_everypay_redirect>
-        <reference name="content">
-            <block type="everypay/everypay" name="everypay" template="multon/everypay/everypay.phtml">
-                <block type="cms/block" name="everypay_description">
-                    <action method="setBlockId">
-                        <block_id>everypay_description</block_id>
-                    </action>
-                </block>
-            </block>
-        </reference>
-    </everypay_everypay_redirect>
     <default>
         <reference name="head">
             <block type="core/text" name="cdn.jquery">
@@ -23,4 +12,41 @@
             <block type="everypay/info" name="everypay_info" template="multon/everypay/info.phtml" />
         </reference>
     </default>
+
+    <everypay_everypay_redirect>
+        <reference name="content">
+            <block type="everypay/everypay" name="everypay" template="multon/everypay/everypay.phtml">
+                <block type="cms/block" name="everypay_description">
+                    <action method="setBlockId">
+                        <block_id>everypay_description</block_id>
+                    </action>
+                </block>
+            </block>
+        </reference>
+    </everypay_everypay_redirect>
+
+    <customer_account>
+        <reference name="customer_account_navigation">
+			<action method="addLink" translate="label" module="everypay"><name>everypay</name><path>everypay/token/</path><label>Saved cards</label></action>
+		</reference>
+	</customer_account>
+
+	<everypay_token_index>
+        <update handle="customer_account"/>
+        <reference name="my.account.wrapper">
+			<block type="everypay/customer_token" name="everypay.customer.token">
+				<block type="core/text_list" name="everypay.customer.token.info" as="info" translate="label">
+					<label>Saved cards</label>
+				</block>
+			</block>
+            <block type="customer/account_dashboard" name="customer.account.link.back" template="customer/account/link/back.phtml"/>
+		</reference>
+	</everypay_token_index>
+
+	<checkout_onepage_failure>
+		<reference name="content">
+            <block type="core/template" template="multon/everypay/link.phtml"/>
+		</reference>
+	</checkout_onepage_failure>
+
 </layout>

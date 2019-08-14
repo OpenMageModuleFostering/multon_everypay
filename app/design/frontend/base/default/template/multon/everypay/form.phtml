@@ -1,0 +1,54 @@
+<div class="form-list everypay-list" id="payment_form_<?php echo $this->getMethodCode() ?>" style="display:none;">
+<?php if (!Mage::getSingleton('customer/session')->isLoggedIn()) {
+	echo $this->__("To save your card securely for easy and faster payments in the future, please <a href=\"%s\">log in</a> to your account or create a <a href=\"%s\">new account</a>.",$this->getUrl('customer/account/login'),$this->getUrl('customer/account/create'));
+} else {
+?>
+	<script type="text/javascript">
+		function toggleCheckbox(onOff)
+		{
+			var box = $('save_token_box');
+			if (onOff)
+				box.show();
+			else
+				box.hide();
+		}
+	</script>
+<?php
+	$tokens = $this->getTokens();
+	if (count($tokens))
+	{
+?>
+	<ul>
+	<?php
+	$def = false;
+	foreach($tokens as $i => $token) {
+		if (
+				($token['cc_year'] < date('Y')) ||
+				(
+						($token['cc_year'] == date('Y')) &&
+						($token['cc_month'] < date('m'))
+				)
+			)
+			continue;
+	?>
+		<li>
+			<input type="radio" id="tok<?php echo $i ?>" name="payment[everypay_use_token]" value="<?php echo $token['cc_token']; ?>" onclick="toggleCheckbox(false)" <?php if ($token['is_default']) { echo 'checked="checked"'; $def=true; } ?>>
+			<label for="tok<?php echo $i ?>" style="float: none">
+				<img src="<?php echo $this->getSkinUrl('images/multon/everypay/'.$token['cc_type'].'.png'); ?>" alt="<?php echo $token['cc_type'] ?>" height="25px" />
+				&nbsp;****&nbsp;****&nbsp;****&nbsp;<?php echo $token['cc_last_four_digits'] ?> (<?php echo $this->__('expires %02d/%4d', $token['cc_month'], $token['cc_year']) ?>)
+			</label>
+		</li>
+	<?php } ?>
+		<li>
+			<input type="radio" id="tokx" name="payment[everypay_use_token]" value="" onclick="toggleCheckbox(true)" <?php if (!$def) echo 'checked="checked"' ?>>
+			<label for="tokx" style="float: none"><?php echo $this->__('Use a new card') ?></label>
+		</li>
+	</ul>
+<?php
+	}
+?>
+	<p id="save_token_box" <?php if ($def) echo 'style="display:none"' ?>>
+		<input type="checkbox" name="payment[everypay_save_token]" value="1" id="save_token"> <label for="save_token"><?php echo $this->__('Save card securely') ?></label>
+	</p>
+<?php } ?>
+</div>

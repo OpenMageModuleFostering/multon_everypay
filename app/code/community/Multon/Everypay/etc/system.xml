@@ -113,15 +113,15 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</account_id>
-						<transaction_type translate="label">
-							<label>Transaction Type</label>
+						<enable_token translate="label">
+							<label>Enable payments with saved cards</label>
 							<frontend_type>select</frontend_type>
-							<source_model>everypay/source_paymentAction</source_model>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
 							<sort_order>21</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</transaction_type>
+							<show_in_store>1</show_in_store>
+						</enable_token>
 						<order_confirmation translate="label">
 							<label>Send Order Confirmation</label>
 							<frontend_type>select</frontend_type>

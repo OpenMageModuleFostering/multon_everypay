@@ -1,16 +1,45 @@
 <?php
-$type = Mage::getStoreConfig('payment/multon_everypay/connection_type');
+$fields = $this->getFields();
+$useIframe = Mage::getStoreConfig('payment/multon_everypay/connection_type') || isset($fields['cc_token']);
 
-if ($type)
+if ($useIframe)
 {
 	?>
-	<iframe id="iframe-payment-container" name="iframe-payment-container" width="460" height="400" style="border: none"></iframe>
+	<iframe id="iframe-payment-container" name="iframe-payment-container" width="460" height="400"
+			style="border: none; <?php if (isset($fields['cc_token'])) echo 'display: none'; ?>"
+	></iframe>
+	<div id="iframe-messages" <?php if (!isset($fields['cc_token'])) echo 'style="display: none"'; ?>>
+		<div class="page-title">
+			<h1 id="message_title"></h1>
+		</div>
+		<p id="message_error"></p>
+		<p id="message_action"></p>
+		<p id="message_contact"></p>
+	</div>
+	<div id="link-to-orders" style="display: none">
+
+<?php
+	$order = $this->getOrder();
+	$isVisible = !in_array($order->getState(), Mage::getSingleton('sales/order_config')->getInvisibleOnFrontStates());
+
+	if (Mage::getSingleton('customer/session')->isLoggedIn() && $isVisible)
+	{
+?>
+    <p><?php echo $this->__('Your order # is: %s.', sprintf('<a href="%s">%s</a>', $this->escapeHtml($this->getUrl('sales/order/view/', array('order_id' => $order->getId()))), $this->escapeHtml($order->getIncrementId()))) ?></p>
+<?php  } else  { ?>
+    <p><?php echo $this->__('Your order # is: %s.', $this->escapeHtml($order->getIncrementId())) ?></p>
+<?php } ?>
+
+		<div class="buttons-set">
+			<button type="button" class="button" title="<?php echo $this->__('My previous orders') ?>" onclick="window.location='<?php echo $this->getUrl('sales/order/history') ?>'"><span><span><?php echo $this->__('My previous orders') ?></span></span></button>
+		</div>
+	</div>
 <?php } ?>
 
 <div class="payment_everyay_container payment_method_everypay">
 	<?php echo $this->getChildHtml('everypay_everypay_description') ?>
     <form
-	<?php if (!$type)
+	<?php if (!$useIframe)
 		{
 		?>
 			id="GatewayForm"  target="_top"
@@ -21,13 +50,13 @@ if ($type)
 		<?php } ?>
 		name="everypay" action="<?php echo $this->getGatewayUrl() ?>transactions/" method="POST">
         <input type="image" src="<?php echo $this->getMethodLogoUrl(); ?>" onclick="this.form.submit()" class="payment-gateway-logo everypay_logo"/>
-		<?php foreach ($this->getFields() as $key => $value)
+		<?php foreach ($fields as $key => $value)
 		{ ?>
 			<input type="hidden" name="<?php echo $key ?>" value="<?php echo $value ?>"/>
 	<?php } ?>
     </form>
 	<?php
-	if (!$type)
+	if (!$useIframe)
 		echo $this->getQuickRedirectScript();
 	else
 	{
@@ -94,6 +123,13 @@ if ($type)
 					if (message.transaction_result === "completed")
 					{
 						window.location="<?php echo Mage::getUrl('checkout/onepage/success'); ?>";
+					} else
+					{
+						jQuery('#message_title').append(message.message_title);
+						jQuery('#message_error').append(message.message_error);
+						jQuery('#message_action').append(message.message_action);
+						jQuery('#message_contact').append(message.message_contact);
+						jQuery('#link-to-orders').show() // link to order history
 					}
 				}
 			}, false);

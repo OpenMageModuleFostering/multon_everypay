@@ -11,7 +11,7 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 	protected $_canUseCheckout = true;
 	protected $logFile = 'everypay.log';
 	protected $_code = 'multon_everypay';
-	protected $_formBlockType = 'everypay/everypay';
+	protected $_formBlockType = 'everypay/form';
 	private $statuses = array(
 		'completed' => self::_VERIFY_SUCCESS,
 		'failed' => self::_VERIFY_CANCEL,
@@ -21,6 +21,19 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 	public function getOrderPlaceRedirectUrl()
 	{
 		return Mage::getUrl('everypay/everypay/redirect');
+	}
+
+	/**
+	 * Assign data to info model instance
+	 *
+	 * @param   mixed $data
+	 * @return  Mage_Payment_Model_Method_Abstract
+	 */
+	public function assignData($data)
+	{
+		$this->getInfoInstance()
+				->setAdditionalInformation('everypay_use_token', $data->getData('everypay_use_token'))
+				->setAdditionalInformation('everypay_save_token', $data->getData('everypay_save_token'));
 	}
 
 	/**
@@ -89,16 +102,13 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 			return self::_VERIFY_CORRUPT;
 		}
 
-		// !! background return message does not have session !!
-//		$session = Mage::getSingleton('checkout/session');
-		/* @var $session Mage_Checkout_Model_Session */
 		// Reference number doesn't match.
-//		if ($session->getLastRealOrderId() != $params['order_reference'])
-//		{
-//			$this->log('(Everypay): Order number doesn\'t match (potential tampering attempt). Expecting: ' . $session->getLastRealOrderId(), __METHOD__, __LINE__);
-//			Mage::getSingleton('checkout/session')->addError('Order number error.');
-//			return self::_VERIFY_CORRUPT;
-//		}
+		if ($this->getOrderNumber() != $params['order_reference'])
+		{
+			$this->log('(Everypay): Order number doesn\'t match (potential tampering attempt). Expecting: ' . $this->getOrderNumber(), __METHOD__, __LINE__);
+			Mage::getSingleton('checkout/session')->addError('Order number error.');
+			return self::_VERIFY_CORRUPT;
+		}
 
 		if (!$this->verifyNonce($params['nonce']))
 		{
@@ -142,14 +152,15 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 	 */
 	public function createInvoice()
 	{
-		$order = Mage::getModel('sales/order')->loadByIncrementId($this->getOrderId());
+		$orderNumber = $this->getOrderNumber();
+		$order = Mage::getModel('sales/order')->loadByIncrementId($orderNumber);
 
-		if (!$this->isLocked($this->getOrderId()))
+		if (!$this->isLocked($orderNumber))
 		{
 			if ($order->canInvoice())
 			{
 
-				if ($this->createLock($this->getOrderId()))
+				if ($this->createLock($orderNumber))
 				{
 
 					$invoice = $order->prepareInvoice();
@@ -160,7 +171,7 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 					$order->save();
 
 					/* Release lock file right after creating invoice */
-					$this->releaseLock($this->getOrderId());
+					$this->releaseLock($orderNumber);
 
 					/* Send invoice */
 					if (Mage::getStoreConfig('payment/' . $this->_code . '/invoice_confirmation') == '1')
@@ -172,46 +183,44 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 				}
 			} else
 			{
-				$this->log('Failed to create invoice for order ' . $this->getOrderId() . '. Reason: invoice already created',
-						__METHOD__, __LINE__);
+				$this->log('Failed to create invoice for order ' . $orderNumber . '. Reason: invoice already created', __METHOD__, __LINE__);
 			}
 		} else
 		{
-			$this->log('Failed to create invoice for order ' . $this->getOrderId() . '. Reason: order locked', __METHOD__,
-					__LINE__);
+			$this->log('Failed to create invoice for order ' . $orderNumber . '. Reason: order locked', __METHOD__, __LINE__);
 		}
 	}
 
 	/**
 	 *
-	 * @param string $orderId
+	 * @param string $orderNumber
 	 * @return string
 	 */
-	private function getLockfilePath($orderId)
+	private function getLockfilePath($orderNumber)
 	{
-		return Mage::getBaseDir('var') . DS . 'locks' . DS . 'order_' . $orderId . '.lock';
+		return Mage::getBaseDir('var') . DS . 'locks' . DS . 'order_' . $orderNumber . '.lock';
 	}
 
 	/**
 	 * Checks if given invoice is locked, i.e if it has
 	 * a file in var/locks folder
 	 *
-	 * @param string $orderId
+	 * @param string $orderNumber
 	 */
-	public function isLocked($orderId)
+	public function isLocked($orderNumber)
 	{
-		return file_exists($this->getLockfilePath($orderId));
+		return file_exists($this->getLockfilePath($orderNumber));
 	}
 
 	/**
 	 * Locks order, i.e creates a lock file
 	 * in var/locks folder
-	 * @param string $orderId
+	 * @param string $orderNumber
 	 */
-	public function createLock($orderId)
+	public function createLock($orderNumber)
 	{
-		$path = $this->getLockfilePath($orderId);
-		if (!touch($this->getLockfilePath($orderId)))
+		$path = $this->getLockfilePath($orderNumber);
+		if (!touch($this->getLockfilePath($orderNumber)))
 		{
 			$this->log('Failed to create lockfile ' . $path, __METHOD__, __LINE__);
 			return false;
@@ -224,11 +233,11 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 	 * Releases lock for order, i.e deletes
 	 * lock file from var/locks folder
 	 *
-	 * @param string $orderId
+	 * @param string $orderNumber
 	 */
-	public function releaseLock($orderId)
+	public function releaseLock($orderNumber)
 	{
-		$path = $this->getLockfilePath($orderId);
+		$path = $this->getLockfilePath($orderNumber);
 		if (!unlink($path))
 		{
 			$this->log('Failed to delete lockfile ' . $path, __METHOD__, __LINE__);
