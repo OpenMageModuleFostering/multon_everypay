@@ -4,21 +4,22 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 {
 	protected $_code = 'multon_everypay';
 	protected $_gateway = 'everypay';
+	protected $logFile = 'everypay.log';
 
 	protected function getReturnUrl()
 	{
-		return Mage::getUrl('everypay/everypay/return');
+		return Mage::getUrl('everypay/everypay/return', array('_nosid' => true));
 	}
 
-    /**
-     * Returns payment gateway URL
-     *
-     * @return string Gateway URL
-     */
-    public function getGatewayUrl()
-    {
-        return Mage::getStoreConfig('payment/' . $this->_code . '/gateway_url');
-    }
+	/**
+	 * Returns payment gateway URL
+	 *
+	 * @return string Gateway URL
+	 */
+	public function getGatewayUrl()
+	{
+		return Mage::getStoreConfig('payment/' . $this->_code . '/gateway_url');
+	}
 
 	/**
 	 * Returns payment method logo URL
@@ -30,44 +31,43 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 		return $this->getSkinUrl('images/multon/everypay/mastercard_visa_acceptance.jpg');
 	}
 
-    /**
-     * Adds payment mehtod logotypes after method name
-     *
-     * @return string
-     */
-    public function getMethodLabelAfterHtml()
-    {
+	/**
+	 * Adds payment mehtod logotypes after method name
+	 *
+	 * @return string
+	 */
+	public function getMethodLabelAfterHtml()
+	{
 		if (Mage::getStoreConfig('payment/' . $this->_code . '/hide_logo'))
-				return '';
-		
-        $blockHtml = sprintf(
-            '<img src="%1$s"
+			return '';
+
+		$blockHtml = sprintf(
+				'<img src="%1$s"
                 title="%2$s"
                 alt="%2$s"
-                class="payment-method-logo"/>',
-            $this->getMethodLogoUrl(), ucfirst($this->_gateway)
-        );
-        return $blockHtml;
-    }
+                class="payment-method-logo"/>', $this->getMethodLogoUrl(), ucfirst($this->_gateway)
+		);
+		return $blockHtml;
+	}
 
-    /**
-     * Checks if quick redirect is enabled and
-     * returns javascript block that redirects user
-     * to bank without intermediate page
-     *
-     * @return outstr Javascript block
-     */
-    public function getQuickRedirectScript()
-    {
-        $outstr = '';
-        if (Mage::getStoreConfig('payment/' . $this->_code . '/quick_redirect'))
+	/**
+	 * Checks if quick redirect is enabled and
+	 * returns javascript block that redirects user
+	 * to bank without intermediate page
+	 *
+	 * @return outstr Javascript block
+	 */
+	public function getQuickRedirectScript()
+	{
+		$outstr = '';
+		if (Mage::getStoreConfig('payment/' . $this->_code . '/quick_redirect'))
 		{
-            $outstr = '<script type="text/javascript"><!--
+			$outstr = '<script type="text/javascript"><!--
                 if($("GatewayForm")){$("GatewayForm").submit();}
                 //--></script>';
-        }
-        return $outstr;
-    }
+		}
+		return $outstr;
+	}
 
 	/**
 	 * Populates and returns array of fields to be submitted
@@ -95,6 +95,9 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 
 		$billing = $order->getBillingAddress();
 		$shipping = $order->getShippingAddress();
+		// downloadable products only orders don't have shipping address
+		if (!$shipping)
+			$shipping = $billing;
 
 		$fields = array(
 			'account_id' => Mage::getStoreConfig('payment/' . $this->_code . '/account_id'),
@@ -111,6 +114,8 @@ class Multon_Everypay_Block_Everypay extends Mage_Payment_Block_Form
 			'delivery_country' => $shipping->getCountry(),
 			'delivery_postcode' => $shipping->getPostcode(),
 			'email' => $billing->getEmail(),
+			'hmac_fields' => 'account_id,amount,api_username,billing_address,billing_city,billing_country,billing_postcode,callback_url,customer_url,delivery_address,delivery_city,' .
+				'delivery_country,delivery_postcode,email,hmac_fields,nonce,order_reference,timestamp,transaction_type,user_ip',
 			'nonce' => $this->getNonce(),
 			'order_reference' => $order->getIncrementId(),
 			'timestamp' => time(),

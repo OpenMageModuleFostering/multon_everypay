@@ -2,20 +2,14 @@
 
 class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 {
-    const _VERIFY_SUCCESS = 1; // payment successful
-    const _VERIFY_CANCEL = 2; // payment unsuccessful
-    const _VERIFY_CORRUPT = 3; // wrong or corrupt response
+	const _VERIFY_SUCCESS = 1; // payment successful
+	const _VERIFY_CANCEL = 2; // payment unsuccessful
+	const _VERIFY_CORRUPT = 3; // wrong or corrupt response
 
 	protected $_canAuthorize = true;
 	protected $_isGateway = true;
 	protected $_canUseCheckout = true;
 	protected $logFile = 'everypay.log';
-
-	/**
-	 * Order Id to create invoice for
-	 * @var string
-	 */
-	protected $_orderId;
 
 	protected $_code = 'multon_everypay';
 	protected $_formBlockType = 'everypay/everypay';
@@ -39,6 +33,24 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 	 */
 	public function verify(array $params = array())
 	{
+		// check for integrity first
+		$fields = explode(',', $params['hmac_fields']);
+		sort($fields);
+
+		$data = '';
+		foreach ($fields as $field)
+			$data .= $field . '=' . $params[$field] . '&';
+
+//		$this->log($data, __METHOD__, __LINE__);
+
+		$hmac = hash_hmac('sha1', substr($data, 0, -1), Mage::getStoreConfig('payment/' . $this->_code . '/api_secret'));
+		if ($params['hmac'] != $hmac)
+		{
+			$this->log('(Everypay) Invalid HMAC (Expected: ' . $hmac . ')', __METHOD__, __LINE__);
+			Mage::getSingleton('checkout/session')->addError('Invalid HMAC.');
+			return self::_VERIFY_CORRUPT;
+		}
+
 		// only in automatic callback message
 		if (isset($params['processing_errors']))
 		{
@@ -46,12 +58,12 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 			if (!empty($errors))
 				$this->log('(Everypay) Errors: ' . print_r($errors, 1), __METHOD__, __LINE__);
 		}
-		if (isset($params['processing_warnings']))
-		{
-			$warnings = json_decode($params['processing_warnings']);
-			if (!empty($warnings))
-				$this->log('(Everypay) Warnings: ' . print_r($warnings, 1), __METHOD__, __LINE__);
-		}
+//		if (isset($params['processing_warnings']))
+//		{
+//			$warnings = json_decode($params['processing_warnings']);
+//			if (!empty($warnings))
+//				$this->log('(Everypay) Warnings: ' . print_r($warnings, 1), __METHOD__, __LINE__);
+//		}
 
 		if (!isset($params['api_username']) || ($params['api_username'] !== Mage::getStoreConfig('payment/' . $this->_code . '/api_username')))
 		{
@@ -68,14 +80,16 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 			return self::_VERIFY_CORRUPT;
 		}
 
-		$session = Mage::getSingleton('checkout/session');
+		// !! background return message does not have session !!
+//		$session = Mage::getSingleton('checkout/session');
+		/* @var $session Mage_Checkout_Model_Session */
 		// Reference number doesn't match.
-		if ($session->getLastRealOrderId() != $params['order_reference'])
-		{
-			$this->log('(Everypay): Order number doesn\'t match (potential tampering attempt).', __METHOD__, __LINE__);
-			Mage::getSingleton('checkout/session')->addError('Order number error.');
-			return self::_VERIFY_CORRUPT;
-		}
+//		if ($session->getLastRealOrderId() != $params['order_reference'])
+//		{
+//			$this->log('(Everypay): Order number doesn\'t match (potential tampering attempt). Expecting: ' . $session->getLastRealOrderId(), __METHOD__, __LINE__);
+//			Mage::getSingleton('checkout/session')->addError('Order number error.');
+//			return self::_VERIFY_CORRUPT;
+//		}
 
 		if (!$this->verifyNonce($params['nonce']))
 		{
@@ -84,51 +98,25 @@ class Multon_Everypay_Model_Everypay extends Mage_Payment_Model_Method_Abstract
 			return self::_VERIFY_CORRUPT;
 		}
 
-		$status = $this->statuses[$params['transaction_result']];
-		switch ($params['transaction_result'])
+		if (isset($params['account_id']) && ($params['account_id'] !== Mage::getStoreConfig('payment/' . $this->_code . '/account_id')))
 		{
-			case 'completed':
-			case 'failed':
-				if ($params['account_id'] !== Mage::getStoreConfig('payment/' . $this->_code . '/account_id'))
-				{
-					$this->log('(Everypay) Invalid account ID', __METHOD__, __LINE__);
-					Mage::getSingleton('checkout/session')->addError('Invalid account.');
-					return self::_VERIFY_CORRUPT;
-				}
-
-				$data = 'account_id=' . $params['account_id'] . '&' .
-						'amount=' . $params['amount'] . '&' .
-						'api_username=' . $params['api_username'] . '&' .
-						'nonce=' . $params['nonce'] . '&' .
-						'order_reference=' . $params['order_reference'] . '&' .
-						'payment_reference=' . $params['payment_reference'] . '&' .
-						'payment_state=' . $params['payment_state'] . '&';
-				if (isset($params['processing_errors']))
-				{
-					$data .= 'processing_errors=' . $params['processing_errors'] . '&' .
-							'processing_warnings=' . $params['processing_warnings'] . '&';
-				}
-				$data .= 'timestamp=' . $params['timestamp'] . '&' .
-						'transaction_result=' . $params['transaction_result'];
-				break;
-			case 'cancelled':
-				$data = 'api_username=' . $params['api_username'] . '&' .
-						'nonce=' . $params['nonce'] . '&' .
-						'order_reference=' . $params['order_reference'] . '&' .
-						'payment_state=' . $params['payment_state'] . '&' .
-						'timestamp=' . $params['timestamp'] . '&' .
-						'transaction_result=' . $params['transaction_result'];
-				break;
-		}
-		$hmac = hash_hmac('sha1', $data, Mage::getStoreConfig('payment/' . $this->_code . '/api_secret'));
-		if ($params['hmac'] != $hmac)
-		{
-			$this->log('(Everypay) Invalid HMAC', __METHOD__, __LINE__);
-			Mage::getSingleton('checkout/session')->addError('Invalid HMAC.');
+			$this->log('(Everypay) Invalid account ID', __METHOD__, __LINE__);
+			Mage::getSingleton('checkout/session')->addError('Invalid account.');
 			return self::_VERIFY_CORRUPT;
 		}
 
-		return $status;
+		// return data is all checked and valid, now check order
+		$order = Mage::getModel('sales/order')->loadByIncrementId($params['order_reference']);
+		/* @var $order Mage_Sales_Model_Order */
+		$orderMethod = $order->getPayment()->getMethod();
+		if ($orderMethod != $this->_code)
+		{
+			$this->log('(Everypay): Wrong payment method. Order has: '.$orderMethod, __METHOD__, __LINE__);
+			Mage::getSingleton('checkout/session')->addError('Wrong payment method.');
+			return self::_VERIFY_CORRUPT;
+		}
+
+		return $this->statuses[$params['transaction_result']];
 	}
 
 	protected function verifyNonce($nonce)
