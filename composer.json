@@ -1,7 +1,7 @@
 {
-    "name": "OpenMageModuleFostering\/multon_everypay",
+    "name": "openmage-module-fostering\/multon_everypay",
     "type": "magento-module",
-    "license": "OSL",
+    "license": "OSL-3.0",
     "homepage": "",
     "description": "Multon Everypay",
     "authors": [
